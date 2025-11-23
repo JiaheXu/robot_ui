@@ -188,17 +188,17 @@ class Dashboard(QWidget):
         self.panel_llm    = ColorPanel("LLM Response",  gradient="blue",   body_font_size=24)
         self.panel_target = ColorPanel("Navigation Target", gradient="yellow", body_font_size=24)
 
-        # Close button
-        self.btn_close = QPushButton("Close")
-        self.btn_close.setFont(QFont("Noto Color Emoji", 20, QFont.Bold))
-        self.btn_close.setStyleSheet("""
-            QPushButton {
-                background:#555; border-radius:12px;
-                padding:8px 16px; color:white;
-            }
-            QPushButton:hover { background:#777; }
-        """)
-        self.btn_close.clicked.connect(self.close)
+        # # Close button
+        # self.btn_close = QPushButton("Close")
+        # self.btn_close.setFont(QFont("Noto Color Emoji", 20, QFont.Bold))
+        # self.btn_close.setStyleSheet("""
+        #     QPushButton {
+        #         background:#555; border-radius:12px;
+        #         padding:8px 16px; color:white;
+        #     }
+        #     QPushButton:hover { background:#777; }
+        # """)
+        # self.btn_close.clicked.connect(self.close)
 
         # Layout
         layout = QVBoxLayout()
@@ -221,7 +221,7 @@ class Dashboard(QWidget):
         layout.addLayout(row1)
         layout.addLayout(row2)
         layout.addWidget(self.panel_target)
-        layout.addWidget(self.btn_close, alignment=Qt.AlignCenter)
+        # layout.addWidget(self.btn_close, alignment=Qt.AlignCenter)
 
         self.setLayout(layout)
 
