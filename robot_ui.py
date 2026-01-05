@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout,
     QPushButton, QFrame
 )
-from PyQt5.QtGui import QFont
+from PyQt5.QtGui import QFont, QFontDatabase
 from PyQt5.QtCore import Qt, pyqtSignal, QObject, QTimer
 
 # ROS2
@@ -21,6 +21,38 @@ from pino_msgs.msg import AudioMSG   # contains .text
 
 
 # ============================================================
+# ✅ FONT SELECTOR (Chinese + Emoji safe)
+# ============================================================
+def pick_chinese_font():
+    """
+    Auto select best Chinese-capable font on this system.
+    """
+    db = QFontDatabase()
+    families = db.families()
+
+    PRIORITY = [
+        "Noto Sans CJK SC",     # Ubuntu / Jetson
+        "WenQuanYi Zen Hei",    # Common Linux
+        "PingFang SC",         # macOS
+        "Hiragino Sans GB",
+        "Microsoft YaHei",     # Windows
+        "SimHei",
+        "Source Han Sans SC"
+    ]
+
+    for f in PRIORITY:
+        if f in families:
+            print(f"[FONT] Using Chinese font: {f}")
+            return f
+
+    print("[FONT] ⚠ No Chinese font found! Falling back to default system font.")
+    return QApplication.font().family()
+
+
+FONT_CN = None   # resolved in main()
+
+
+# ============================================================
 # Simple Color Panel Widget
 # ============================================================
 class ColorPanel(QFrame):
@@ -29,9 +61,10 @@ class ColorPanel(QFrame):
         self.setFrameShape(QFrame.NoFrame)
 
         self.title = QLabel(title_text)
-        self.title.setFont(QFont("Noto Color Emoji", 18, QFont.Bold))
+        self.title.setFont(QFont(FONT_CN, 18, QFont.Bold))
+
         self.value = QLabel("—")
-        self.value.setFont(QFont("Noto Color Emoji", body_font_size))
+        self.value.setFont(QFont(FONT_CN, body_font_size))
         self.value.setWordWrap(True)
 
         v = QVBoxLayout()
@@ -133,7 +166,6 @@ class RobotUiNode(Node):
         self.bus.sig_target.emit(msg.data.strip())
 
     def on_gps(self, msg: NavSatFix):
-        # Determine GPS state
         status_code = int(getattr(msg.status, "status", 0))
         lat = msg.latitude
         lon = msg.longitude
@@ -159,7 +191,6 @@ class RobotUiNode(Node):
         })
         self._update_alerts()
 
-    # ---------------- Alerts -------------------
     def _update_alerts(self):
         any_alert = (self._behavior_code == 3 or self._gps_state == "LOST")
         if any_alert != self._any_alert:
@@ -168,51 +199,34 @@ class RobotUiNode(Node):
 
 
 # ============================================================
-# Main Dashboard UI (NO FACE PANEL)
+# Main Dashboard UI
 # ============================================================
 class Dashboard(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Robot Dashboard (800x480)")
 
-        # Global app background: gray
         self.setStyleSheet("""
             QWidget { background: #3a3a3a; color:white; }
         """)
 
-        # Panels
         self.panel_mode   = ColorPanel("Robot Mode",    gradient="yellow", body_font_size=28)
         self.panel_gps    = ColorPanel("GPS Status",    gradient="green",  body_font_size=28)
         self.panel_batt   = ColorPanel("Battery",       gradient="purple", body_font_size=28)
-        self.panel_asr    = ColorPanel("ASR (User)",    gradient="blue",   body_font_size=24)
-        self.panel_llm    = ColorPanel("LLM Response",  gradient="blue",   body_font_size=24)
-        self.panel_target = ColorPanel("Navigation Target", gradient="yellow", body_font_size=24)
+        self.panel_asr    = ColorPanel("ASR (用户)",    gradient="blue",   body_font_size=24)
+        self.panel_llm    = ColorPanel("LLM 回复",      gradient="blue",   body_font_size=24)
+        self.panel_target = ColorPanel("目标点",        gradient="yellow", body_font_size=24)
 
-        # # Close button
-        # self.btn_close = QPushButton("Close")
-        # self.btn_close.setFont(QFont("Noto Color Emoji", 20, QFont.Bold))
-        # self.btn_close.setStyleSheet("""
-        #     QPushButton {
-        #         background:#555; border-radius:12px;
-        #         padding:8px 16px; color:white;
-        #     }
-        #     QPushButton:hover { background:#777; }
-        # """)
-        # self.btn_close.clicked.connect(self.close)
-
-        # Layout
         layout = QVBoxLayout()
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(10)
 
-        # Top row: Mode, GPS, Battery
         row1 = QHBoxLayout()
         row1.setSpacing(10)
         row1.addWidget(self.panel_mode, 1)
         row1.addWidget(self.panel_gps, 1)
         row1.addWidget(self.panel_batt, 1)
 
-        # Middle row: ASR + LLM
         row2 = QHBoxLayout()
         row2.setSpacing(10)
         row2.addWidget(self.panel_asr, 1)
@@ -221,27 +235,25 @@ class Dashboard(QWidget):
         layout.addLayout(row1)
         layout.addLayout(row2)
         layout.addWidget(self.panel_target)
-        # layout.addWidget(self.btn_close, alignment=Qt.AlignCenter)
 
         self.setLayout(layout)
 
-    # ------------------ Slots ---------------------
     def on_asr(self, text: str):
-        self.panel_asr.set_text(text if text else "(empty)")
+        self.panel_asr.set_text(text if text else "(空)")
         self.panel_asr.set_alert(text.strip() == "")
 
     def on_llm(self, text: str):
-        self.panel_llm.set_text(text if text else "(empty)")
+        self.panel_llm.set_text(text if text else "(空)")
 
     def on_mode(self, code: int):
         mapping = {
-            0: "Idle",
-            1: "Moving",
-            2: "Interacting",
-            3: "ERROR",
-            4: "Standby"
+            0: "空闲",
+            1: "移动中",
+            2: "交互中",
+            3: "错误",
+            4: "待机"
         }
-        txt = mapping.get(code, f"Unknown({code})")
+        txt = mapping.get(code, f"未知({code})")
         self.panel_mode.set_text(txt)
         self.panel_mode.set_alert(code == 3)
 
@@ -252,16 +264,13 @@ class Dashboard(QWidget):
         self.panel_gps.set_alert(s == "LOST")
 
     def on_battery(self, val: float):
-        # Force battery to always show 100%
-        percent = 100.0
         self.panel_batt.set_text("100% 🔋")
         self.panel_batt.set_alert(False)
 
     def on_target(self, target: str):
-        self.panel_target.set_text(target if target else "(none)")
+        self.panel_target.set_text(target if target else "(无目标)")
 
     def on_any_alert(self, alert: bool):
-        # nothing special visually here — panel alerts already handle it
         pass
 
     def closeEvent(self, event):
@@ -276,14 +285,17 @@ class Dashboard(QWidget):
 # MAIN
 # ============================================================
 def main():
+    global FONT_CN
+
     app = QApplication(sys.argv)
+    FONT_CN = pick_chinese_font()
+
     ui = Dashboard()
 
     rclpy.init(args=None)
     bus = UiBus()
     node = RobotUiNode(bus)
 
-    # Connect Qt slots
     bus.sig_asr.connect(ui.on_asr)
     bus.sig_llm.connect(ui.on_llm)
     bus.sig_mode.connect(ui.on_mode)
@@ -292,7 +304,6 @@ def main():
     bus.sig_target.connect(ui.on_target)
     bus.sig_alert.connect(ui.on_any_alert)
 
-    # Spin ROS in thread
     def spin():
         rclpy.spin(node)
         node.destroy_node()
