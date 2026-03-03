@@ -1,0 +1,58 @@
+Increase screen brightness
+No tasks in progress
+
+
+sometimes the screen is too dim, I cannot find the lightness adjustment button in system. is there any way to the screen lighter?
+
+What OS/device are you on (Windows, macOS, Linux, Chromebook, phone)? The steps differ.
+
+Quick general checks in the meantime:
+
+Keyboard: look for sun/brightness keys (often Fn + F1–F12).
+Power mode: set to Best performance / High performance to avoid auto-dimming.
+Auto brightness / adaptive brightness: turn it off in display settings.
+If it’s a laptop, make sure it’s plugged in (some devices dim on battery).
+Tell me your OS and model and I’ll give exact steps.
+
+
+jetson orin with ubuntu 22.04, balence power mode
+
+Got it: Jetson Orin, Ubuntu 22.04, balanced power mode. Here are the most reliable ways to make it brighter.
+
+1) Settings UI (if available)
+
+Settings → Power → set Power Mode to Performance.
+Settings → Displays → increase Brightness slider.
+Settings → Power or Displays → turn off Automatic/Adaptive Brightness if present.
+2) Force brightness via sysfs (internal panel)
+Run these to find the backlight device and max brightness:
+
+ls /sys/class/backlight
+cat /sys/class/backlight/*/max_brightness
+cat /sys/class/backlight/*/brightness
+Set to max (replace DEVICE and MAX):
+
+echo MAX | sudo tee /sys/class/backlight/DEVICE/brightness
+Example:
+
+echo 255 | sudo tee /sys/class/backlight/pwm-backlight/brightness
+3) External display (HDMI/DP)
+If you’re on an external monitor, use xrandr:
+
+xrandr --listmonitors
+xrandr --output HDMI-0 --brightness 1.0
+Try 1.2 to boost a bit, but it can wash colors.
+
+4) Jetson power mode (nvpmodel)
+Balanced mode can cap brightness indirectly via power limits. Check and switch:
+
+sudo nvpmodel -q
+sudo nvpmodel -m 0
+sudo jetson_clocks
+-m 0 is typically max performance on Jetson. This won’t directly change brightness but prevents aggressive power saving.
+
+If you want, tell me whether it’s the built‑in panel or an external monitor, and the output of ls /sys/class/backlight, and I’ll give a precise command.
+
+
+
+
