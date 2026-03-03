@@ -23,6 +23,7 @@ from pino_msgs.msg import AudioMSG   # contains .text
 
 
 # ============================================================
+<<<<<<< HEAD
 # Motion Command Mapping (matches motion_server.py)
 # ============================================================
 MOTION_COMMANDS = {
@@ -42,6 +43,8 @@ MOTION_COMMANDS = {
 
 
 # ============================================================
+=======
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
 # ✅ FONT SELECTOR (Chinese + Emoji safe)
 # ============================================================
 def pick_chinese_font():
@@ -53,16 +56,21 @@ def pick_chinese_font():
 
     PRIORITY = [
         "Noto Sans CJK SC",     # Ubuntu / Jetson
+<<<<<<< HEAD
         "Noto Sans CJK TC",
         "WenQuanYi Zen Hei",    # Common Linux
         "WenQuanYi Micro Hei",
         "Droid Sans Fallback",  # Android/Linux fallback
         "AR PL UMing CN",       # Arphic fonts
         "AR PL UKai CN",
+=======
+        "WenQuanYi Zen Hei",    # Common Linux
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
         "PingFang SC",         # macOS
         "Hiragino Sans GB",
         "Microsoft YaHei",     # Windows
         "SimHei",
+<<<<<<< HEAD
         "SimSun",
         "Source Han Sans SC",
         "Sans"                 # Generic fallback
@@ -138,6 +146,21 @@ def create_font_with_emoji(base_font_name: str, size: int, weight: int = QFont.N
 
 FONT_CN = None   # resolved in main()
 FONT_EMOJI = None  # resolved in main()
+=======
+        "Source Han Sans SC"
+    ]
+
+    for f in PRIORITY:
+        if f in families:
+            print(f"[FONT] Using Chinese font: {f}")
+            return f
+
+    print("[FONT] ⚠ No Chinese font found! Falling back to default system font.")
+    return QApplication.font().family()
+
+
+FONT_CN = None   # resolved in main()
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
 
 
 # ============================================================
@@ -149,10 +172,17 @@ class ColorPanel(QFrame):
         self.setFrameShape(QFrame.NoFrame)
 
         self.title = QLabel(title_text)
+<<<<<<< HEAD
         self.title.setFont(create_font_with_emoji(FONT_CN, body_font_size, QFont.Bold))
 
         self.value = QLabel("—")
         self.value.setFont(create_font_with_emoji(FONT_CN, body_font_size))
+=======
+        self.title.setFont(QFont(FONT_CN, 18, QFont.Bold))
+
+        self.value = QLabel("—")
+        self.value.setFont(QFont(FONT_CN, body_font_size))
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
         self.value.setWordWrap(True)
 
         h = QHBoxLayout()
@@ -355,6 +385,7 @@ class Dashboard(QWidget):
         self.is_chinese = True  # Default to Chinese
         self.is_running = False  # Track start/stop state
 
+<<<<<<< HEAD
         # Button label mappings
         self.button_labels = {
             "HAND_HEART": {"en": "🫨 SHAKE BODY", "cn": "🫨 摇摆"},
@@ -377,6 +408,8 @@ class Dashboard(QWidget):
         self.button_pressed = {}     # Track which buttons are currently pressed
 
         # Don't set font-family in stylesheet to avoid overriding the Chinese font
+=======
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
         self.setStyleSheet("""
             QWidget { background: #ffffff; color:#000000; }
             QPushButton {
@@ -396,6 +429,7 @@ class Dashboard(QWidget):
             QPushButton:pressed { background:#eef5ff; }
         """)
 
+<<<<<<< HEAD
         # Header items
         self.label_batt = QLabel("🔋 --%")
         self.label_lang = QPushButton("中 / EN")
@@ -454,6 +488,33 @@ class Dashboard(QWidget):
         llm_layout.addWidget(self.llm_title, stretch=0)
         llm_layout.addWidget(self.llm_text, stretch=1)
         self.llm_frame.setLayout(llm_layout)
+=======
+        self.panel_mode   = ColorPanel("Robot Mode",    gradient="yellow", body_font_size=28)
+        self.panel_gps    = ColorPanel("GPS Status",    gradient="green",  body_font_size=28)
+        self.panel_batt   = ColorPanel("Battery",       gradient="purple", body_font_size=28)
+        self.panel_asr    = ColorPanel("ASR (用户)",    gradient="blue",   body_font_size=24)
+        self.panel_llm    = ColorPanel("LLM 回复",      gradient="blue",   body_font_size=24)
+        self.panel_target = ColorPanel("目标点",        gradient="yellow", body_font_size=24)
+
+        layout = QVBoxLayout()
+        layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(10)
+
+        row1 = QHBoxLayout()
+        row1.setSpacing(10)
+        row1.addWidget(self.panel_mode, 1)
+        row1.addWidget(self.panel_gps, 1)
+        row1.addWidget(self.panel_batt, 1)
+
+        row2 = QHBoxLayout()
+        row2.setSpacing(10)
+        row2.addWidget(self.panel_asr, 1)
+        row2.addWidget(self.panel_llm, 1)
+
+        layout.addLayout(row1)
+        layout.addLayout(row2)
+        layout.addWidget(self.panel_target)
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
 
         middle_row = QHBoxLayout()
         middle_row.setSpacing(1)
@@ -671,6 +732,7 @@ class Dashboard(QWidget):
 
     def on_asr(self, text: str):
         self.panel_asr.set_text(text if text else "(空)")
+<<<<<<< HEAD
 
     def on_llm(self, text: str):
         # append and keep scroll at bottom
@@ -682,6 +744,12 @@ class Dashboard(QWidget):
         cur += text
         self.llm_text.setPlainText(cur)
         self.llm_text.moveCursor(self.llm_text.textCursor().End)
+=======
+        self.panel_asr.set_alert(text.strip() == "")
+
+    def on_llm(self, text: str):
+        self.panel_llm.set_text(text if text else "(空)")
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
 
     def on_mode(self, code: int):
         mapping = {
@@ -692,7 +760,12 @@ class Dashboard(QWidget):
             4: "待机"
         }
         txt = mapping.get(code, f"未知({code})")
+<<<<<<< HEAD
         self.label_mode.setText(f"ROBOT MODE: {txt}")
+=======
+        self.panel_mode.set_text(txt)
+        self.panel_mode.set_alert(code == 3)
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
 
     def on_gps(self, summary: dict):
         s = summary.get("state", "UNKNOWN")
@@ -700,6 +773,7 @@ class Dashboard(QWidget):
         self.label_gps.setText(f"🛰 GPS: {s} — {hint}")
 
     def on_battery(self, val: float):
+<<<<<<< HEAD
         if val is None:
             self.label_batt.setText("🔋 --")
             return
@@ -713,6 +787,15 @@ class Dashboard(QWidget):
 
     def on_any_alert(self, alert: bool):
         # Do not change background on alerts
+=======
+        self.panel_batt.set_text("100% 🔋")
+        self.panel_batt.set_alert(False)
+
+    def on_target(self, target: str):
+        self.panel_target.set_text(target if target else "(无目标)")
+
+    def on_any_alert(self, alert: bool):
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
         pass
 
     def closeEvent(self, event):
@@ -727,6 +810,7 @@ class Dashboard(QWidget):
 # MAIN
 # ============================================================
 def main():
+<<<<<<< HEAD
     global FONT_CN, FONT_EMOJI
 
     app = QApplication(sys.argv)
@@ -750,13 +834,24 @@ def main():
     screen = app.primaryScreen().size()
     scale = min(screen.width() / 800.0, screen.height() / 480.0)
     print(f"[UI] Screen: {screen.width()}x{screen.height()}, scale: {scale:.2f}")
+=======
+    global FONT_CN
+
+    app = QApplication(sys.argv)
+    FONT_CN = pick_chinese_font()
+
+    ui = Dashboard()
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
 
     rclpy.init(args=None)
     bus = UiBus()
     node = RobotUiNode(bus)
 
+<<<<<<< HEAD
     ui = Dashboard(node=node, scale=scale)
 
+=======
+>>>>>>> fc4351a8c49dda2d485b32d4f02bb00ff28c05e7
     bus.sig_asr.connect(ui.on_asr)
     bus.sig_llm.connect(ui.on_llm)
     bus.sig_mode.connect(ui.on_mode)
